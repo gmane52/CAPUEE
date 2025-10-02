@@ -33,5 +33,6 @@ else
   Serial.print("ºC");
 }
   Serial.println(" ");
+  /modifico algo
 }
 
