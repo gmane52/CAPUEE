@@ -68,7 +68,7 @@ void config_i2c(){
   Wire.write(writeBuf[0]); 
   Wire.write(writeBuf[1]);
   Wire.write(writeBuf[2]);  
-  Wire.endTransmission();  
+  //Wire.endTransmission();  
 
   delay(500);
 }
@@ -114,52 +114,50 @@ void loop() {
   // Calculate the time difference between the current time and the last time the instantaneous current was updated
   difTime=act_time-time_ant; 
 
-  
-   if (difTime>=1000) {
+     if (difTime>=1000) {
 
-    // Update the time record with the current time
-    time_ant=act_time;
+      // Update the time record with the current time
+      time_ant=act_time;
     
-    // Read the voltage from the sensor check the 1.65 measuring in the circuit with AO2
-    double Vinst = read_voltage()- 1.65;
+      // Read the voltage from the sensor check the 1.65 measuring in the circuit with AO2
+      double Vinst = read_voltage()- 1.65;
 
-    // Convert voltage in shunt to current measurement
-     double Iinst=Vinst*30; 
+      // Convert voltage in shunt to current measurement
+      double Iinst=Vinst*30; 
 
-    // Accumulate cuadratic sum
-    quadratic_sum_rms += Iinst*Iinst*difTime/10000000;
-    quadratic_sum_counter++;
-   } 
-
-   // EVERY POWER CYCLE (20 ACCUMULATED VALUES), CALCULATE RMS
-if (quadratic_sum_counter>=20) {
-
-    // Take the square root to calculate the RMS of the last power cycle
-    double Irms = sqrt(50*quadratic_sum_rms)
-    // Reset accumulation values to calculate the RMS of the last power cycle
-    quadratic_sum_counter=0;
-    quadratic_sum_rms=0;
-    // Filter base error
-    if (Irms<=0.1){
-      Irms = 0;
+      // Accumulate cuadratic sum
+      quadratic_sum_rms += Iinst*Iinst*difTime/10000000;
+      quadratic_sum_counter++;
     }
-    // Accumulate RMS current values to calculate the average RMS
-    accumulated_current+=Irms;
-    accumulated_counter++;
-    
-    //Serial.println(Irms);
-  }
 
-  // EVERY 250 POWER CYCLES (approximately 5 seconds), CALCULATE THE AVERAGE RMS
-  if (accumulated_counter >=250) {
+    // EVERY POWER CYCLE (20 ACCUMULATED VALUES), CALCULATE RMS
+    if (quadratic_sum_counter>=20) {
 
-    // Calculate the average of the RMS current
-    double Irms_flt =  accumulated_current/((double)accumulated_counter);
-    // Reset accumulation values to calculate the average RMS
-    
-    // Print the filtered current
-    //Serial.println(Irms_flt);
-  }
+      // Take the square root to calculate the RMS of the last power cycle
+      double Irms = sqrt(50*quadratic_sum_rms);
+      // Reset accumulation values to calculate the RMS of the last power cycle
+      quadratic_sum_counter=0;
+      quadratic_sum_rms=0;
+      // Filter base error
+      if (Irms<=0.1){
+        Irms = 0;
+      }
+      // Accumulate RMS current values to calculate the average RMS
+      accumulated_current+=Irms;
+      accumulated_counter++;
+      
+      //Serial.println(Irms);
+    }
 
+    // EVERY 250 POWER CYCLES (approximately 5 seconds), CALCULATE THE AVERAGE RMS
+    if (accumulated_counter >=250) {
+      // Calculate the average of the RMS current
+      double Irms_flt =  accumulated_current/((double)accumulated_counter);
+      // Reset accumulation values to calculate the average RMS
+      
+      // Print the filtered current
+      Serial.println(Irms_flt);
+    }
+pause(1000);
 
 }
