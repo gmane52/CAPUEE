@@ -37,6 +37,6 @@ Two main tasks:
 - Weekly usage report (energy, emissions, switching cycles) stored in non-volatile memory.
 
 ## 4. Implementation
-- **Firmware language:** C++
+- **Firmware language:** C++, python
 - **Framework:** Arduino on ESP32
-- **Version control:** GitHub with main directories `documentation/` and `code/`, branch coordination to avoid merge conflicts.
+
