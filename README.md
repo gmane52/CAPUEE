@@ -40,3 +40,24 @@ Two main tasks:
 - **Firmware language:** C++, python
 - **Framework:** Arduino on ESP32
 
+
+# IMPLEMENTATION 
+## ESP32
+- En un loop leer valor de corriente y escribirlo en serial como "CurrentSensor:XXX" (RL)
+- En un loop leer valor de temperatura y escribirlo en serial como "TempSensor:XXX" (RL)
+
+- En un loop buscara todo el rato "ACTIVATE_RELE" o "DESACTIVATE_RELE", y en cada caso activara o desactivara. (MS)
+
+- (OPCIONAL) Enviar a TELEGRAM cambios de estado del rele, estilo: "Relé activado" o "Relé desactivado". (RL y MS)
+- (OPCIONAL) Recibir de TELEGRAM comandos para cambiar el estado del relé. -> Se tiene que imprimir alguna cosa para que python lo sepa. (RL y MS)
+- (OPCIONAL) Desde TELEGRAM enviar peticiones de lectura de temperatura y corriente (RL y MS)
+
+
+## SERVER
+- Leer en serial los valores de "CurrentSensor:XXX" y "TempSensor:XXX" (GM)
+- Acceder a la API de ESIOS y actualizar una variable el valor de Tco2 generados por las tecnologias generadoras en ese momento. (MS)
+- Existe una logica de activación y desactivacion de relés: (MS)
+    - (OPCIONAL) Se desactiva durante X tiempo (1minuto) la logica si se activa/desactiva el relé por TELEGRAM.
+    - Enviar por serie "ACTIVATE_RELE" o "DESACTIVATE_RELE" en base a esta logica
+
+- Dashboards para activar/desactivar, observar historicos, etc.... (GM)

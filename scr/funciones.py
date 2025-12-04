@@ -2,6 +2,10 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 
+import serial
+import time
+import re
+
 # Archvio con funciones:
 
 def Consulta_api_esios(API_KEY=None):
@@ -52,4 +56,23 @@ def Consulta_api_esios(API_KEY=None):
 
     return ultimo
 
-Consulta_api_esios()
+def read_serial():
+    # Set up the serial port
+    ser = serial.Serial('COM3', 9600, timeout=100)
+    time.sleep(2)   # Wait for Arduino to initialize
+
+    try:
+        while True:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode(errors='ignore').strip()   # Read a line and decode
+
+                # Use regex to find all numbers in the received line
+                numbers = re.findall(r"[-+]?\d*\.\d+|[-+]?\d+", line)
+
+                # Print the extracted sensor values
+                print(f"Extracted values: {numbers}")
+
+    except KeyboardInterrupt:
+        print("Program terminated by user.")
+        ser.close()
+
