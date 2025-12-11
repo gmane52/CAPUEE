@@ -60,4 +60,4 @@ Two main tasks:
     - (OPCIONAL) Se desactiva durante X tiempo (1minuto) la logica si se activa/desactiva el relé por TELEGRAM.
     - Enviar por serie "ACTIVATE_RELE" o "DESACTIVATE_RELE" en base a esta logica
 
-- Dashboards para activar/desactivar, observar historicos, etc.... (GM)
+- Dashboards para activar/desactivar, observar historicos, etc.... (GM) ( python -m streamlit run)

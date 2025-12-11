@@ -92,7 +92,7 @@ def log_medida():
 
 # ----- MAIN ----- #
 ## Abrir puerto serial y esperar un poco
-ser = serial.Serial('COM3', 9600, timeout=1)
+ser = serial.Serial('COM11', 9600, timeout=1)
 time.sleep(2)
 
 ## Inicializar valor carbonIntensity
@@ -100,6 +100,7 @@ Consulta_api_ElecMap() # Inicializar variable carbonIntensity
 
 ## Configuration on ssheduled tasks
 schedule.every(15).minutes.do(Consulta_api_ElecMap)
+schedule.every(5).minutes.do(log_medida)
 
 ## Crear archivo donde guardar las lecturas:
 if not os.path.exists(csv_file):
@@ -123,8 +124,6 @@ while True:
     if TempSensor is not None and TempSensor > 30:
         DesactivarRele()
         rele = False
-
-    log_medida()
 
     time.sleep(1) 
 
