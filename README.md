@@ -61,3 +61,10 @@ Two main tasks:
     - Enviar por serie "ACTIVATE_RELE" o "DESACTIVATE_RELE" en base a esta logica
 
 - Dashboards para activar/desactivar, observar historicos, etc.... (GM) ( python -m streamlit run)
+
+
+
+
+
+TIPS:
+pip freeze > requirements.txt
