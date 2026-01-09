@@ -68,3 +68,5 @@ Two main tasks:
 
 TIPS:
 pip freeze > requirements.txt
+streamlit run "c:/Users/figol/Documents/03. github/CAPUEE/server/dashboard.py"
+
