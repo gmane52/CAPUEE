@@ -63,14 +63,14 @@ def read_serial(ser):
             except ValueError:
                 print("  [ERROR] No pude convertir TempSensor a float.")
 
-def ActivarRele():
+def ActivarRele(ser):
     try:
         comando = "ACTIVATE_RELE\n"
         ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
     except Exception as e:
         print("#ERROR# no se ha podido escribir en el puerto serial: 'ACTIVATE_RELE'")
 
-def DesactivarRele():
+def DesactivarRele(ser):
     try:
         comando = "DESACTIVATE_RELE\n"
         ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
@@ -92,7 +92,7 @@ def log_medida():
 
 # ----- MAIN ----- #
 ## Abrir puerto serial y esperar un poco
-ser = serial.Serial('COM11', 9600, timeout=1)
+ser = serial.Serial('COM6', 9600, timeout=1)
 time.sleep(2)
 
 ## Inicializar valor carbonIntensity
@@ -100,7 +100,7 @@ Consulta_api_ElecMap() # Inicializar variable carbonIntensity
 
 ## Configuration on ssheduled tasks
 schedule.every(15).minutes.do(Consulta_api_ElecMap)
-schedule.every(5).minutes.do(log_medida)
+schedule.every(5).seconds.do(log_medida)
 
 ## Crear archivo donde guardar las lecturas:
 if not os.path.exists(csv_file):
@@ -109,7 +109,7 @@ if not os.path.exists(csv_file):
         writer.writerow(["timestamp", "TempSensor", "CurrentSensor", "carbonIntensity", "ReleState"])
 
 ## Inicializa el rele para saber en que estado esta:
-DesactivarRele()
+DesactivarRele(ser)
 rele = False # False = abierto
 
 ## BUCLE
@@ -118,11 +118,11 @@ while True:
     
     read_serial(ser)
     if TempSensor is not None and TempSensor < 25:
-        ActivarRele()
+        ActivarRele(ser)
         rele = True
 
-    if TempSensor is not None and TempSensor > 30:
-        DesactivarRele()
+    elif TempSensor is not None and TempSensor > 30:
+        DesactivarRele(ser)
         rele = False
 
     time.sleep(1) 

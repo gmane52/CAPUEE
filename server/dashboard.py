@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+import datetime as dt
 
 st.markdown(
     "<h2 style='text-align:center;'>Main dashboard</h2>",
@@ -94,18 +95,48 @@ with st.container(border=True):
 # ============================================================================
 # Actions
 # ============================================================================
+# init
+if "active_menu" not in st.session_state:
+    st.session_state.active_menu = None  # "timer" | "settings" | None
+
 with st.container(border=True):
     st.subheader("Actions")
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
-        if st.button("⚡Activate/Desactivate", use_container_width=True):
+        if st.button("⚡ Activate/Deactivate", use_container_width=True, key="btn_act"):
             st.success("Botón pulsado")
 
     with col2:
-        if st.button("🗓️ Timer", use_container_width=True):
-            st.success("Botón pulsado")
+        if st.button("🗓️ Timer", use_container_width=True, key="btn_timer"):
+            st.session_state.active_menu = None if st.session_state.active_menu == "timer" else "timer"
 
     with col3:
-        if st.button("⚙️ Settings", use_container_width=True):
-            st.success("Botón pulsado") 
+        if st.button("⚙️ Settings", use_container_width=True, key="btn_settings"):
+            st.session_state.active_menu = None if st.session_state.active_menu == "settings" else "settings"
+
+# ---- render del menú activo ----
+if st.session_state.active_menu == "timer":
+        with st.container(border=True):
+            col_h, col_m = st.columns(2)
+
+            with col_h:
+                hours = st.number_input("Hours", min_value=0, max_value=24, value=1, step=1, key="hours")
+
+            with col_m:
+                minutes = st.number_input("Minutes", min_value=0, max_value=59, value=30, step=5, key="minutes")
+
+            duration = dt.timedelta(hours=hours, minutes=minutes)
+            total_minutes = int(duration.total_seconds() // 60)
+            h = total_minutes // 60
+            m = total_minutes % 60
+            st.metric("Duration", f"+{h}h {m}min")
+            
+            if st.button("Apply", use_container_width=True, key="btn_apply"):
+                st.success("Applied")
+
+elif st.session_state.active_menu == "settings":
+    with st.container(border=True):
+        st.subheader("Settings")
+
+        
