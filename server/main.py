@@ -14,6 +14,10 @@ carbonIntensity = None
 CurrentSensor = None
 TempSensor = None
 rele = False # False = abierto
+TEMP_ON = 25.0
+TEMP_OFF = 30.0
+carbonIntensityMAX = 10
+
 
 csv_file = "medidas.csv"
 
@@ -100,7 +104,7 @@ Consulta_api_ElecMap() # Inicializar variable carbonIntensity
 
 ## Configuration on ssheduled tasks
 schedule.every(15).minutes.do(Consulta_api_ElecMap)
-schedule.every(5).seconds.do(log_medida)
+schedule.every(1).seconds.do(log_medida)
 
 ## Crear archivo donde guardar las lecturas:
 if not os.path.exists(csv_file):
@@ -114,20 +118,32 @@ rele = False # False = abierto
 
 ## BUCLE
 while True:
+    try:
+        with open("server/config.txt") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("TEMP_ON="):
+                    TEMP_ON = float(line.split("=", 1)[1])
+                elif line.startswith("TEMP_OFF="):
+                    TEMP_OFF = float(line.split("=", 1)[1])
+    except:
+        pass
+
     schedule.run_pending()
-    
     read_serial(ser)
-    if TempSensor is not None and TempSensor < 25:
+
+    # control temperatura (con anti-spam de comandos)
+    if TempSensor is not None and TempSensor < TEMP_ON and not rele:
         ActivarRele(ser)
         rele = True
 
-    elif TempSensor is not None and TempSensor > 30:
+    elif TempSensor is not None and TempSensor > TEMP_OFF and rele:
         DesactivarRele(ser)
         rele = False
 
-    time.sleep(1) 
+    # seguridad por carbono
+    if carbonIntensity is not None and carbonIntensity > carbonIntensityMAX and rele:
+        DesactivarRele(ser)
+        rele = False
 
-# Conectate a la API y actualiza el valor de la variable Tco2 (cada 15 minutos)(función que devactualiza directamente la variable global) -> OKKK
-
-# Leer los valores Serial (una función que devuelve los valores de Current y Temp.)
-# Logica de activación / desactivación del relé
+    time.sleep(1)
