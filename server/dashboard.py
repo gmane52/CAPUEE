@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import datetime as dt
 import time
+import os
 
 
 # ============================================================================
@@ -35,6 +36,7 @@ except:
 #  Data frame work
 # ============================================================================
 @st.cache_data(ttl=5)  # en “tiempo real” pon 1–5s
+
 def load_and_prepare(path: str):
     df = pd.read_csv(path)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -48,7 +50,7 @@ def load_and_prepare(path: str):
     df["on_energy_Wh"] = df["energy_Wh"].where(df["ReleState"], 0)
     return df
 
-df = load_and_prepare("medidas_sinteticas_2semanas.csv")
+df = load_and_prepare("server/medidas.csv")
 
 # filtros
 now = pd.Timestamp.now()
@@ -244,8 +246,6 @@ with st.container(border=True):
                         st.rerun()
 
 
-
-
     with col2:
         with st.expander("⚙️ Settings", expanded=False):
 
@@ -264,6 +264,10 @@ with st.container(border=True):
                 st.rerun()
 
             if st.button("‼️ Erase dataset ‼️", use_container_width=True):
+                if os.path.exists("server/medidas_sinteticas_2semanas.csv"):
+                    os.remove("server/medidas_sinteticas_2semanas.csv")
+                else:
+                    st.success("FIle does not exist!")
                 st.success("Done!")
                 st.rerun()
 

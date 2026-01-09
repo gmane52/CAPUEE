@@ -21,7 +21,7 @@ CONTROL = "AUTO"
 MANUAL_RELE_STATE = False
 
 
-csv_file = "medidas.csv"
+csv_file = "server/medidas.csv"
 
 
 # ----- FUNCIONES ----- # 
