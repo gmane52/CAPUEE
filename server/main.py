@@ -17,6 +17,8 @@ rele = False # False = abierto
 TEMP_ON = 25.0
 TEMP_OFF = 30.0
 carbonIntensityMAX = 10
+CONTROL = "AUTO"
+MANUAL_RELE_STATE = False
 
 
 csv_file = "medidas.csv"
@@ -38,7 +40,6 @@ def Consulta_api_ElecMap():
     
     data = response.json()
     carbonIntensity = data["carbonIntensity"]
-
 
 def read_serial(ser):
     global CurrentSensor, TempSensor
@@ -126,24 +127,40 @@ while True:
                     TEMP_ON = float(line.split("=", 1)[1])
                 elif line.startswith("TEMP_OFF="):
                     TEMP_OFF = float(line.split("=", 1)[1])
+                elif line.startswith("CONTROL="):
+                    CONTROL = line.split("=",1)[1].strip()
+                elif line.startswith("MANUAL_RELE_STATE="):
+                    MANUAL_RELE_STATE = line.split("=",1)[1].strip() == "TRUE"
+                elif line.startswith("CARBON_INTENSITY_MAX="):
+                    carbonIntensityMAX = float(line.split("=", 1)[1])
     except:
         pass
 
     schedule.run_pending()
     read_serial(ser)
 
-    # control temperatura (con anti-spam de comandos)
-    if TempSensor is not None and TempSensor < TEMP_ON and not rele:
-        ActivarRele(ser)
-        rele = True
+    # manual control
+    if CONTROL == "MANUAL":
+        if MANUAL_RELE_STATE and not rele:
+            ActivarRele(ser)
+            rele = True
 
-    elif TempSensor is not None and TempSensor > TEMP_OFF and rele:
-        DesactivarRele(ser)
-        rele = False
+        elif not MANUAL_RELE_STATE and rele:
+            DesactivarRele(ser)
+            rele = False
 
-    # seguridad por carbono
-    if carbonIntensity is not None and carbonIntensity > carbonIntensityMAX and rele:
-        DesactivarRele(ser)
-        rele = False
+    # auto control
+    else:
+        if TempSensor is not None and TempSensor < TEMP_ON and not rele:
+            ActivarRele(ser)
+            rele = True
+
+        elif TempSensor is not None and TempSensor > TEMP_OFF and rele:
+            DesactivarRele(ser)
+            rele = False
+
+        if carbonIntensity is not None and carbonIntensity > carbonIntensityMAX and rele:
+            DesactivarRele(ser)
+            rele = False
 
     time.sleep(1)

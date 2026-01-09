@@ -3,12 +3,11 @@ import streamlit as st
 import datetime as dt
 import time
 
-st.markdown(
-    "<h2 style='text-align:center;'>Main dashboard</h2>",
-    unsafe_allow_html=True
-)
 
-## SETUP 
+# ============================================================================
+#  Inits
+# ============================================================================
+
 if "show_more_1" not in st.session_state:
     st.session_state.show_more_1 = False
 
@@ -25,14 +24,16 @@ try:
         for line in f:
             if line.startswith("DEVICE_NAME"):
                 device_name = line.split("=", 1)[1].strip()
+            if line.startswith("CONTROL"):
+                control_mode = line.split("=", 1)[1].strip()
+            if line.startswith("MANUAL_RELE_STATE"):
+                manual_rele_state = line.split("=", 1)[1].strip()                
 except:
     pass
 
-from streamlit_autorefresh import st_autorefresh
-# esto esta guai pero genera lag
-# st_autorefresh(interval=1000, key="refresh")
-
-# Preparacion dataframe:
+# ============================================================================
+#  Data frame work
+# ============================================================================
 @st.cache_data(ttl=5)  # en “tiempo real” pon 1–5s
 def load_and_prepare(path: str):
     df = pd.read_csv(path)
@@ -49,7 +50,7 @@ def load_and_prepare(path: str):
 
 df = load_and_prepare("medidas_sinteticas_2semanas.csv")
 
-# --- filtrar por hoy y este mes ---
+# filtros
 now = pd.Timestamp.now()
 
 df_today = df[df["timestamp"].dt.date == now.date()]
@@ -64,6 +65,10 @@ time_total_h, energy_total_kwh = resumen(df)
 time_today_h, energy_today_kwh = resumen(df_today)
 time_month_h, energy_month_kwh = resumen(df_month)
 
+# ============================================================================
+#  functions
+# ============================================================================
+
 def graficar(datos):
     d = datos.set_index("timestamp")
     d = d.resample("5min").mean(numeric_only=True)
@@ -77,22 +82,53 @@ def graficar(datos):
     st.write("carbon Intensity")
     st.line_chart(d["carbonIntensity"])
 
+def update_config(updates):
+                    lines = []
+                    found = {k: False for k in updates.keys()}
+
+                    try:
+                        with open("server/config.txt", "r") as f:
+                            for line in f:
+                                line_stripped = line.strip()
+                                replaced = False
+                                for k, v in updates.items():
+                                    if line_stripped.startswith(k + "="):
+                                        lines.append(f"{k}={v}\n")
+                                        found[k] = True
+                                        replaced = True
+                                        break
+                                if not replaced:
+                                    lines.append(line)
+                    except:
+                        pass
+
+                    for k, v in updates.items():
+                        if not found[k]:
+                            lines.append(f"{k}={v}\n")
+
+                    with open("server/config.txt", "w") as f:
+                        f.writelines(lines)
+
+
 
 # ============================================================================
 #  Intro dispositivo
 # ============================================================================
 
+st.markdown("<h2 style='text-align:center;'>Main dashboard</h2>",unsafe_allow_html=True)
+
+
 with st.container(border=True):
     col1, col2 = st.columns(2)
     
     with col1:
-       st.image(
-        "C:/Users/figol/Documents/03. github/CAPUEE/server/testImagen.png",
-        width=150
-        )
+       st.image("C:/Users/figol/Documents/03. github/CAPUEE/server/testImagen.png",width=150)
     
     with col2:
-        st.text(device_name)
+        st.text(f"Device name: {device_name}")
+        st.text(f"Rele state: {control_mode}")
+        if control_mode == "MANUAL":
+            st.text(f"Rele state: {manual_rele_state}")
 
 
 # ============================================================================
@@ -175,23 +211,40 @@ with st.container(border=True):
 # ============================================================================
 # Actions
 # ============================================================================
-# init
-# ============================================================================
-# Actions
-# ============================================================================
-
 with st.container(border=True):
     st.subheader("Actions")
     col1, col2 = st.columns(2)
 
     with col1:
-        with st.expander("⚡ Activate / Deactivate", expanded=False):
-                         
-            if st.button("Activate", use_container_width=True):
-                st.success("Botón pulsado")
-            
-            if st.button("Desactivate", use_container_width=True):
-                st.success("Botón pulsado")
+        with st.expander("Manual Control", expanded=False):
+
+            with st.form("manual_mode_form"):
+                manual_enabled = st.toggle("Activate manual control", value=(control_mode == "MANUAL"))
+                apply_mode = st.form_submit_button("Apply mode", use_container_width=True)
+
+            if apply_mode:
+                update_config({"CONTROL": "MANUAL" if manual_enabled else "AUTO"})
+                st.success("Mode applied")
+                st.rerun()
+
+            if manual_enabled:
+                col_on, col_off = st.columns(2)
+
+                with col_on:
+                    if st.button("⚡ Activate", use_container_width=True):
+                        update_config({"MANUAL_RELE_STATE": "TRUE"})
+                        st.success("Relay ON")
+                        st.rerun()
+
+
+                with col_off:
+                    if st.button("🛑 Deactivate", use_container_width=True):
+                        update_config({"MANUAL_RELE_STATE": "FALSE"})
+                        st.success("Relay OFF")
+                        st.rerun()
+
+
+
 
     with col2:
         with st.expander("⚙️ Settings", expanded=False):
@@ -208,13 +261,11 @@ with st.container(border=True):
                     f.write(f"TEMP_OFF={temp_off}\n")
                     f.write(f"CARBON_INTENSITY_MAX={carbon_intensity_max}\n")
                 st.success("Settings applied")
+                st.rerun()
 
             if st.button("‼️ Erase dataset ‼️", use_container_width=True):
                 st.success("Done!")
-
-# ============================================================================
-# Settings
-# ============================================================================
+                st.rerun()
 
 
 
