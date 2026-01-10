@@ -54,12 +54,13 @@ df = load_and_prepare("server/medidas.csv")
 
 # 1) Ordena primero
 df = df.sort_values("timestamp").copy()
-
-# 2) Calcula deltas sobre el DF completo
 max_gap = pd.Timedelta("15min")
 
 dt = df["timestamp"].diff()
-df["on_dt_s_calc"] = dt.where(dt <= max_gap, pd.Timedelta(0)).dt.total_seconds().fillna(0)
+on_mask = df["ReleState"].shift(1).fillna(False)  # estado del intervalo anterior
+
+df["on_dt_s_calc"] = dt.where((dt <= max_gap) & on_mask, pd.Timedelta(0)).dt.total_seconds().fillna(0)
+
 
 # 3) Filtros DESPUÉS
 now = pd.Timestamp.now()
@@ -133,7 +134,7 @@ with st.container(border=True):
     col1, col2 = st.columns(2)
     
     with col1:
-       st.image("C:/Users/figol/Documents/03. github/CAPUEE/server/testImagen.png",width=150)
+       st.image("server/testImagen.png",width=150)
     
     with col2:
         st.text(f"Device name: {device_name}")
@@ -212,9 +213,9 @@ with st.container(border=True):
         left, center, right = st.columns([1, 2, 1])
         with center:
             if st.button("show more", use_container_width=True, key="show_more_btn_3"):
-                st.session_state.show_more_1 = not st.session_state.show_more_1
+                st.session_state.show_more_3 = not st.session_state.show_more_3
         
-        if st.session_state.show_more_1:
+        if st.session_state.show_more_3:
             with st.container(border=True):
                 graficar(df)
 
