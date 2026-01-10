@@ -52,20 +52,29 @@ def load_and_prepare(path: str):
 
 df = load_and_prepare("server/medidas.csv")
 
-# filtros
-now = pd.Timestamp.now()
+# 1) Ordena primero
+df = df.sort_values("timestamp").copy()
 
+# 2) Calcula deltas sobre el DF completo
+max_gap = pd.Timedelta("15min")
+
+dt = df["timestamp"].diff()
+df["on_dt_s_calc"] = dt.where(dt <= max_gap, pd.Timedelta(0)).dt.total_seconds().fillna(0)
+
+# 3) Filtros DESPUÉS
+now = pd.Timestamp.now()
 df_today = df[df["timestamp"].dt.date == now.date()]
 df_month = df[(df["timestamp"].dt.year == now.year) & (df["timestamp"].dt.month == now.month)]
 
 def resumen(d):
-    time_on_h = d["on_dt_s"].sum() / 3600
+    time_on_h = d["on_dt_s_calc"].sum() / 3600
     energy_on_kwh = d["on_energy_Wh"].sum() / 1000
     return time_on_h, energy_on_kwh
 
 time_total_h, energy_total_kwh = resumen(df)
 time_today_h, energy_today_kwh = resumen(df_today)
 time_month_h, energy_month_kwh = resumen(df_month)
+
 
 # ============================================================================
 #  functions
@@ -245,7 +254,6 @@ with st.container(border=True):
                         st.success("Relay OFF")
                         st.rerun()
 
-
     with col2:
         with st.expander("⚙️ Settings", expanded=False):
 
@@ -260,6 +268,8 @@ with st.container(border=True):
                     f.write(f"TEMP_ON={temp_on}\n")
                     f.write(f"TEMP_OFF={temp_off}\n")
                     f.write(f"CARBON_INTENSITY_MAX={carbon_intensity_max}\n")
+                    f.write(f"CONTROL={control_mode}\n")
+                    f.write(f"MANUAL_RELE_STATE={manual_rele_state}\n")
                 st.success("Settings applied")
                 st.rerun()
 

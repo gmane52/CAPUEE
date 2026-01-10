@@ -14,8 +14,8 @@ carbonIntensity = None
 CurrentSensor = None
 TempSensor = None
 rele = False # False = abierto
-TEMP_ON = 25.0
-TEMP_OFF = 30.0
+TEMP_ON = 25
+TEMP_OFF = 30
 carbonIntensityMAX = 10
 CONTROL = "AUTO"
 MANUAL_RELE_STATE = False
@@ -70,14 +70,14 @@ def read_serial(ser):
 
 def ActivarRele(ser):
     try:
-        comando = "ACTIVATE_RELE\n"
+        comando = "H\n"
         ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
     except Exception as e:
         print("#ERROR# no se ha podido escribir en el puerto serial: 'ACTIVATE_RELE'")
 
 def DesactivarRele(ser):
     try:
-        comando = "DESACTIVATE_RELE\n"
+        comando = "L\n"
         ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
     except Exception as e:
         print("#ERROR# no se ha podido escribir en el puerto serial: 'DESACTIVATE_RELE'")
@@ -97,7 +97,7 @@ def log_medida():
 
 # ----- MAIN ----- #
 ## Abrir puerto serial y esperar un poco
-ser = serial.Serial('COM6', 9600, timeout=1)
+ser = serial.Serial('COM7', 115200, timeout=1)
 time.sleep(2)
 
 ## Inicializar valor carbonIntensity
@@ -105,7 +105,7 @@ Consulta_api_ElecMap() # Inicializar variable carbonIntensity
 
 ## Configuration on ssheduled tasks
 schedule.every(15).minutes.do(Consulta_api_ElecMap)
-schedule.every(1).seconds.do(log_medida)
+schedule.every(5).seconds.do(log_medida)
 
 ## Crear archivo donde guardar las lecturas:
 if not os.path.exists(csv_file):
@@ -115,6 +115,7 @@ if not os.path.exists(csv_file):
 
 ## Inicializa el rele para saber en que estado esta:
 DesactivarRele(ser)
+time.sleep(2)
 rele = False # False = abierto
 
 ## BUCLE
@@ -159,7 +160,7 @@ while True:
             DesactivarRele(ser)
             rele = False
 
-        if carbonIntensity is not None and carbonIntensity > carbonIntensityMAX and rele:
+        if carbonIntensity is not None and carbonIntensity < carbonIntensityMAX and rele:
             DesactivarRele(ser)
             rele = False
 

@@ -1,0 +1,27 @@
+import serial
+import time
+import re
+import requests
+import schedule
+import csv
+from datetime import datetime
+import os
+
+ser = serial.Serial('COM7', 115200, timeout=1)
+time.sleep(2)
+
+def ActivarRele(ser):
+    try:
+        comando = "H\n"
+        ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
+    except Exception as e:
+        print("#ERROR# no se ha podido escribir en el puerto serial: 'ACTIVATE_RELE'")
+
+def DesactivarRele(ser):
+    try:
+        comando = "L\n"
+        ser.write(comando.encode()) #Enviar como bytes para comunicaciones serial
+    except Exception as e:
+        print("#ERROR# no se ha podido escribir en el puerto serial: 'DESACTIVATE_RELE'")
+
+DesactivarRele(ser)

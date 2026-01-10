@@ -16,8 +16,8 @@ def check_requirements():
     print("Comprobando dependencias...")
     subprocess.check_call(
         [VENV_PY, "-m", "pip", "install", "-r", str(req)],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        #stdout=subprocess.DEVNULL,
+        #stderr=subprocess.DEVNULL,
     )
 
 def run_main():
