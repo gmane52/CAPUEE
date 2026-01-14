@@ -84,7 +84,8 @@ flowchart LR
         PY_C["Update Carbon Intensity 
         via REST API"]
         PY_D{Evaluate
-        Temperature and Dashboard}
+        Temperature / Dashboard /
+        Carbon intensity}
         PY_E["Relay 
         Activation / Deactivation"]
 

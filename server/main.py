@@ -19,8 +19,6 @@ TEMP_OFF = 30
 carbonIntensityMAX = 10
 CONTROL = "AUTO"
 MANUAL_RELE_STATE = False
-
-
 csv_file = "server/medidas.csv"
 
 
@@ -93,8 +91,6 @@ def log_medida():
     with open(csv_file, "a", newline="") as f: # append
         writer = csv.writer(f)
         writer.writerow([timestamp, TempSensor, CurrentSensor, carbonIntensity, rele])
-
-
 # ----- MAIN ----- #
 ## Abrir puerto serial y esperar un poco
 ser = serial.Serial('COM7', 115200, timeout=1)
@@ -120,7 +116,7 @@ rele = False # False = abierto
 
 ## BUCLE
 while True:
-    try:
+    try: # read CONFIG.txt 
         with open("server/config.txt") as f:
             for line in f:
                 line = line.strip()
@@ -163,5 +159,4 @@ while True:
         if carbonIntensity is not None and carbonIntensity < carbonIntensityMAX and rele:
             DesactivarRele(ser)
             rele = False
-
     time.sleep(1)
