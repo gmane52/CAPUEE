@@ -52,7 +52,7 @@ def load_and_prepare(path: str):
 
 df = load_and_prepare("server/medidas.csv")
 
-# 1) Ordena primero
+# 1) Ordena 
 df = df.sort_values("timestamp").copy()
 max_gap = pd.Timedelta("15min")
 
@@ -62,7 +62,7 @@ on_mask = df["ReleState"].shift(1).fillna(False)  # estado del intervalo anterio
 df["on_dt_s_calc"] = dt.where((dt <= max_gap) & on_mask, pd.Timedelta(0)).dt.total_seconds().fillna(0)
 
 
-# 3) Filtros DESPUÉS
+# 3) Filtros 
 now = pd.Timestamp.now()
 df_today = df[df["timestamp"].dt.date == now.date()]
 df_month = df[(df["timestamp"].dt.year == now.year) & (df["timestamp"].dt.month == now.month)]
