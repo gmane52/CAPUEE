@@ -22,7 +22,7 @@ def check_requirements():
 
 def run_main():
     print("Ejecutando main.py")
-    subprocess.Popen([VENV_PY, str(BASE_DIR / "main.py")])
+    subprocess.Popen([VENV_PY, str(BASE_DIR / "backend.py")])
 
 def run_dashboard():
     subprocess.Popen(
